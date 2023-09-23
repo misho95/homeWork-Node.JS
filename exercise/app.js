@@ -1,53 +1,58 @@
-const http = require("http");
+const { program } = require("commander");
+const moment = require("moment");
+const { writeFile, readFile, existsSync } = require("fs");
 
-const posts = [
-  {
-    id: 1,
-    title: "post 1",
-  },
-  {
-    id: 2,
-    title: "post 2",
-  },
-];
+program
+  .option("-amount <char>")
+  .option("-category <char>")
+  .option("-type <char>");
 
-http
-  .createServer((req, res) => {
-    const splitUrl = req.url.split("/");
-    const filterData = [];
-    if (splitUrl[2]) {
-      const findPost = posts.find((d) => {
-        if (d.id === +splitUrl[2]) {
-          return d;
-        }
-      });
-      if (findPost) {
-        filterData.push(findPost);
-      }
+program.parse();
+
+const options = program.opts();
+
+const date = moment().format("MMMM Do YYYY, h:mm:ss a");
+
+if (existsSync("data.json")) {
+  readFile("data.json", (err, data) => {
+    if (err) {
+      console.log(err);
+      return;
     }
-    switch (req.url) {
-      case "/":
-        res.setHeader("Content-Type", "text/html");
-        res.writeHead(200);
-        res.end("<div>Hello World! <a href=/posts />Posts</a></div>");
-        break;
-      case "/posts":
-        res.setHeader("Content-Type", "application/json");
-        res.writeHead(201);
-        res.end(JSON.stringify(posts));
-        break;
-      case `/posts/${splitUrl[2]}`:
-        res.setHeader("Content-Type", "application/json");
-        res.writeHead(201);
-        res.end(
-          filterData.length > 0 ? JSON.stringify(filterData) : "no posts"
-        );
-        break;
-      default:
-        res.setHeader("Content-Type", "text/html");
-        res.writeHead(404);
-        res.end("<div>404 Page Not Found</div>");
-        break;
+    const parsedData = JSON.parse(data);
+    const updated = [
+      ...parsedData,
+      {
+        ...options,
+        id: Math.floor(Math.random() * 1000000),
+        date,
+      },
+    ];
+
+    console.log(updated);
+    writeFile("data.json", JSON.stringify(updated), (err) => {
+      if (err) console.log("error", err);
+      console.log("done");
+    });
+  });
+
+  return;
+}
+
+writeFile(
+  "data.json",
+  JSON.stringify([
+    {
+      ...options,
+      id: Math.floor(Math.random() * 1000000),
+      date,
+    },
+  ]),
+  (err) => {
+    if (err) {
+      console.log("error: ", err);
     }
-  })
-  .listen(8080);
+
+    console.log("done");
+  }
+);
