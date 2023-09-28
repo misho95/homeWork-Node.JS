@@ -32,7 +32,11 @@ app
       }
     });
 
-    console.log(userFind);
+    if (!userFind) {
+      res.send("erro: no user found");
+      res.status(400);
+    }
+    console.log(userFind.id);
     res.send("singed");
     res.status(200);
   });
@@ -69,5 +73,7 @@ app
     console.log(users);
     res.send("new user is added");
   });
+
+app.get("/api/v1/users/session", (req, res) => {});
 
 app.listen(3000, () => console.log("Example app is listening on port 3000."));
