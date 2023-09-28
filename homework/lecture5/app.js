@@ -74,6 +74,8 @@ app
     res.send("new user is added");
   });
 
-app.get("/api/v1/users/session", (req, res) => {});
+app.get("/api/v1/users/session", (req, res) => {
+  console.log("ეს მაინც ვერ გავიგე ;D");
+});
 
 app.listen(3000, () => console.log("Example app is listening on port 3000."));
