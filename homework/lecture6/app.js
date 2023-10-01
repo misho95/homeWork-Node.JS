@@ -54,8 +54,42 @@ const sessionMidleWare = (req, res, next) => {
   next();
 };
 
+const commentOwnerMiddleWare = (req, res, next) => {
+  const postId = req.params.id;
+  const cid = req.body.cid;
+
+  if (!postId || !cid) {
+    res.status(400).send("no id's");
+  }
+
+  const findPost = posts.find((p) => {
+    if (+p.id === +postId) return p;
+  });
+
+  if (!findPost) {
+    res.status(400).send("no post found");
+  }
+
+  req["post"] = findPost;
+
+  const findComment = findPost.comments.find((c) => {
+    if (+c.id === +cid) return c;
+  });
+
+  if (!findComment) {
+    res.status(400).send("no comments found");
+  }
+
+  if (req.session.id === findComment.userId) {
+    req["owner"] = true;
+  } else {
+    req["owner"] = false;
+  }
+  next();
+};
+
 const roleMiddleware = (req, res, next) => {
-  if (req.session.role !== "admin") {
+  if (req.owner !== true && req.session.role !== "admin") {
     res.send("no acces...");
     res.status(403);
   }
@@ -115,7 +149,19 @@ app.get("/posts", (req, res) => {
   res.json(posts);
 });
 
-app.post("/posts/add", myLoggerMidleWare, sessionMidleWare, (req, res) => {
+app.get("/posts/:id", (req, res) => {
+  const postId = req.params.id;
+  const getPostById = posts.find((p) => {
+    if (+p.id === +postId) return p;
+  });
+  if (!getPostById) {
+    res.status(400).send("no post found with this ID");
+  }
+
+  res.status(200).json(getPostById);
+});
+
+app.post("/posts", myLoggerMidleWare, sessionMidleWare, (req, res) => {
   if (!req.body) {
     res.send("invalid data...");
     res.status(400);
@@ -132,8 +178,8 @@ app.post("/posts/add", myLoggerMidleWare, sessionMidleWare, (req, res) => {
   res.send("data added");
 });
 
-app.post(
-  "/posts/delete/:id",
+app.delete(
+  "/posts/:id",
   myLoggerMidleWare,
   sessionMidleWare,
   roleMiddleware,
@@ -144,13 +190,12 @@ app.post(
     });
 
     posts = deletePost;
-    res.send("deleted");
-    res.status(200);
+    res.status(200).json(deletePost);
   }
 );
 
-app.post(
-  "/posts/edit/:id",
+app.put(
+  "/posts/:id",
   myLoggerMidleWare,
   sessionMidleWare,
   roleMiddleware,
@@ -170,8 +215,90 @@ app.post(
     });
 
     posts = editPost;
-    res.send("edited");
-    res.status(200);
+    res.status(200).json(editPost);
+  }
+);
+
+app.post(
+  "/posts/:id/comments",
+  myLoggerMidleWare,
+  sessionMidleWare,
+  (req, res) => {
+    const postId = req.params.id;
+    const comment = req.body.comment;
+    const updatePost = posts.map((p) => {
+      if (+p.id === +postId) {
+        return {
+          ...p,
+          comments: [
+            ...p.comments,
+            { id: new Date().getTime(), userId: req.session.id, comment },
+          ],
+        };
+      } else return p;
+    });
+    posts = updatePost;
+    res.status(200).json(updatePost);
+  }
+);
+
+app.put(
+  "/posts/:id/comments",
+  myLoggerMidleWare,
+  sessionMidleWare,
+  commentOwnerMiddleWare,
+  roleMiddleware,
+  (req, res) => {
+    const postId = req.params.id;
+    const cid = req.body.cid;
+    const updated = req.post.comments.map((c) => {
+      if (+c.id === +cid) {
+        return { ...c, comment: req.body.comment };
+      } else return c;
+    });
+
+    console.log(updated);
+
+    const updatePosts = posts.map((p) => {
+      if (+p.id === +postId) {
+        return {
+          ...p,
+          comments: updated,
+        };
+      } else return p;
+    });
+
+    posts = updatePosts;
+
+    res.status(200).json(updatePosts);
+  }
+);
+
+app.delete(
+  "/posts/:id/comments",
+  myLoggerMidleWare,
+  sessionMidleWare,
+  commentOwnerMiddleWare,
+  roleMiddleware,
+  (req, res) => {
+    const postId = req.params.id;
+    const cid = req.body.cid;
+    const deleted = req.post.comments.filter((c) => {
+      if (+c.id !== +cid) return c;
+    });
+
+    const updatePosts = posts.map((p) => {
+      if (+p.id === +postId) {
+        return {
+          ...p,
+          comments: deleted,
+        };
+      } else return p;
+    });
+
+    posts = updatePosts;
+
+    res.status(200).json(updatePosts);
   }
 );
 
