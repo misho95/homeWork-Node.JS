@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Page</title>
+  </head>
+  <body>
+    <ul>
+      <% expenses.forEach(function(expense){ %>
+      <li>
+        <h3><%= expense.category %></h3>
+        <a href="/post/<%= expense.id %>">See more</a>
+      </li>
+      <% }); %>
+    </ul>
+  </body>
+</html>
