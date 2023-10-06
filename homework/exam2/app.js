@@ -23,6 +23,16 @@ const authMiddleWear = (req, res, next) => {
   next();
 };
 
+const authMiddleWearForm = (req, res, next) => {
+  const localToken = sessionStorage.getItem("accessToken");
+  if (localToken) {
+    res.redirect("/");
+    return;
+  }
+
+  next();
+};
+
 app.get("/", authMiddleWear, (req, res) => {
   readFile(path.join(__dirname, "expense.json"), (err, data) => {
     if (err) {
@@ -153,11 +163,11 @@ app.post("/edit/:id", authMiddleWear, (req, res) => {
   });
 });
 
-app.get("/signin", (req, res) => {
+app.get("/signin", authMiddleWearForm, (req, res) => {
   res.render("signin");
 });
 
-app.post("/signin", (req, res) => {
+app.post("/signin", authMiddleWearForm, (req, res) => {
   readFile(path.join(__dirname, "users.json"), (err, data) => {
     if (err) {
       res.status(400);
@@ -183,11 +193,11 @@ app.post("/signin", (req, res) => {
   });
 });
 
-app.get("/signup", (req, res) => {
+app.get("/signup", authMiddleWearForm, (req, res) => {
   res.render("signup");
 });
 
-app.post("/signup", (req, res) => {
+app.post("/signup", authMiddleWearForm, (req, res) => {
   const user = {
     id: new Date().getTime(),
     firstName: req.body.firstName,
