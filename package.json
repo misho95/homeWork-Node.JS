@@ -10,10 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.20.2",
     "commander": "^11.0.0",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
+    "express-layout": "^0.1.0",
     "moment": "^2.29.4",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "routes": "^2.1.0",
+    "sessionstorage-for-nodejs": "^1.0.2"
   }
 }
