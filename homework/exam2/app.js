@@ -194,7 +194,10 @@ app.post("/signin", authMiddleWearForm, (req, res) => {
 });
 
 app.get("/signup", authMiddleWearForm, (req, res) => {
-  res.render("signup");
+  readFile(path.join(__dirname, "users.json"), (err, data) => {
+    const userData = JSON.parse(data);
+    res.render("signup", { data: userData });
+  });
 });
 
 app.post("/signup", authMiddleWearForm, (req, res) => {
@@ -240,6 +243,7 @@ app.post("/logout", authMiddleWear, (req, res) => {
 
   sessionStorage.removeItem("accessToken");
   res.status(200);
+  res.redirect("/signin");
 });
 
 app.listen(3000, () => console.log("server is on port 3000"));

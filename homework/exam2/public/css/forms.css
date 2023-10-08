@@ -63,7 +63,19 @@ button {
   color: white;
 }
 
+button:disabled {
+  opacity: 0.5;
+}
+
 a {
   color: #6366f1;
   text-decoration: none;
+}
+
+.red-text {
+  color: red;
+}
+
+.green-text {
+  color: green;
 }
